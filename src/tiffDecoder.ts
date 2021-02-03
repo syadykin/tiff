@@ -21,7 +21,7 @@ interface IInternalOptions extends IDecodeOptions {
 }
 
 export default class TIFFDecoder extends IOBuffer {
-  private _nextIFD: number;
+  protected _nextIFD: number;
 
   public constructor(data: BufferType) {
     super(data);
@@ -70,7 +70,7 @@ export default class TIFFDecoder extends IOBuffer {
     return result;
   }
 
-  private decodeHeader(): void {
+  protected decodeHeader(): void {
     // Byte offset
     const value = this.readUint16();
     if (value === 0x4949) {
@@ -90,9 +90,9 @@ export default class TIFFDecoder extends IOBuffer {
     this._nextIFD = this.readUint32();
   }
 
-  private decodeIFD(options: IInternalOptions, tiff: true): TiffIfd;
-  private decodeIFD(options: IInternalOptions, tiff: false): IFD;
-  private decodeIFD(options: IInternalOptions, tiff: boolean): TiffIfd | IFD {
+  protected decodeIFD(options: IInternalOptions, tiff: true): TiffIfd;
+  protected decodeIFD(options: IInternalOptions, tiff: false): IFD;
+  protected decodeIFD(options: IInternalOptions, tiff: boolean): TiffIfd | IFD {
     this.seek(this._nextIFD);
 
     let ifd: TiffIfd | IFD;
@@ -119,7 +119,7 @@ export default class TIFFDecoder extends IOBuffer {
     return ifd;
   }
 
-  private decodeIFDEntry(ifd: IFD): void {
+  protected decodeIFDEntry(ifd: IFD): void {
     const offset = this.offset;
     const tag = this.readUint16();
     const type = this.readUint16();
@@ -163,7 +163,7 @@ export default class TIFFDecoder extends IOBuffer {
     this.skip(12);
   }
 
-  private decodeImageData(ifd: TiffIfd): void {
+  protected decodeImageData(ifd: TiffIfd): void {
     const orientation = ifd.orientation;
     if (orientation && orientation !== 1) {
       throw unsupported('orientation', orientation);
@@ -190,7 +190,7 @@ export default class TIFFDecoder extends IOBuffer {
     }
   }
 
-  private readStripData(ifd: TiffIfd): void {
+  protected readStripData(ifd: TiffIfd): void {
     const width = ifd.width;
     const height = ifd.height;
 
@@ -255,7 +255,7 @@ export default class TIFFDecoder extends IOBuffer {
     ifd.data = data;
   }
 
-  private fillUncompressed(
+  protected fillUncompressed(
     bitDepth: number,
     sampleFormat: number,
     data: DataArray,
@@ -274,7 +274,7 @@ export default class TIFFDecoder extends IOBuffer {
     }
   }
 
-  private applyPredictor(ifd: TiffIfd): void {
+  protected applyPredictor(ifd: TiffIfd): void {
     const bitDepth = ifd.bitsPerSample;
     switch (ifd.predictor) {
       case 1: {
@@ -306,7 +306,7 @@ export default class TIFFDecoder extends IOBuffer {
     }
   }
 
-  private convertAlpha(ifd: TiffIfd): void {
+  protected convertAlpha(ifd: TiffIfd): void {
     if (ifd.alpha && ifd.associatedAlpha) {
       const { data, components, maxSampleValue } = ifd;
       for (let i = 0; i < data.length; i += components) {
